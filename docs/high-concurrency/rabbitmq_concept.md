@@ -10,7 +10,7 @@ Exchanges, connections, and queues can be configured with parameters such as dur
 
 In RabbitMQ, there are four different types of exchange that route the message differently using different parameters and bindings setups. Clients can create their own exchanges or use the predefined default exchanges, the exchanges created when the server starts for the first time.
 
-![MacDown Screenshot](docs/high-concurrency/images/exchanges-bidings-routing-keys.png)
+![rabbitmq routing keys](/docs/high-concurrency/images/exchanges-bidings-routing-keys.png)
 
 
 
