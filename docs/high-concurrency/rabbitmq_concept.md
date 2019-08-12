@@ -70,3 +70,36 @@ The image to the right show an example where consumer A is interested in all the
 * Queue B: all\_agreements  
 * Routing pattern between exchange (agreements) and Queue B (all\_agreements): agreements.#  
 * Example of message routing key that matches: agreements.eu.berlin and agreements.us
+
+**SCENARIO 3**
+Consumer C is interested in all agreements for European head stores.
+
+* Exchange: agreements
+* Queue C: headstore\_agreements
+* Routing pattern between exchange (agreements) and Queue C (headstore\_agreements): agreements.eu.*.headstore
+* Example of message routing keys that will match: agreements.eu.berlin.headstore and agreements.eu.stockholm.headstore
+
+#### Fanout Exchange
+The fanout copies and routes a received message to all queues that are bound to it regardless of routing keys or pattern matching as with direct and topic exchanges. Keys provided will simply be ignored.
+
+Fanout exchanges can be useful when the same message needs to be sent to one or more queues with consumers who may process the same message in different ways.
+
+The image to the right (Fanout Exchange Figure) shows an example where a message received by the exchange is copied and routed to all three queues that are bound to the exchange. It could be sport or weather news updates that should be sent out to each connected mobile device when something happens.
+
+The default exchange AMQP brokers must provide for the topic exchange is "amq.fanout".
+
+![rabbitmq fanout exchange](/docs/high-concurrency/images/fanout-exchange.png)
+
+#### Headers Exchange
+Headers exchanges route based on arguments containing headers and optional values. Headers exchanges are very similar to topic exchanges, but it routes based on header values instead of routing keys. A message is considered matching if the value of the header equals the value specified upon binding.
+
+A special argument named "x-match", which can be added in the binding between your exchange and your queue, tells if all headers must match or just one. Either any common header between the message and the binding count as a match, or all the headers referenced in the binding need to be present in the message for it to match. The "x-match" property can have two different values: "any" or "all", where "all" is the default value. A value of "all" means all header pairs (key, value) must match and a value of "any" means at least one of the header pairs must match. Headers can be constructed using a wider range of data types - integer or hash for example instead of a string. The headers exchange type (used with the binding argument "any") is useful for directing messages which may contain a subset of known (unordered) criteria.
+
+The default exchange AMQP brokers must provide for the topic exchange is "amq.headers".
+
+* Exchange: Binding to Queue A with arguments (key = value): format = pdf, type = report, x-match = all
+* Exchange: Binding to Queue B with arguments (key = value): format = pdf, type = log, x-match = any
+* Exchange: Binding to Queue C with arguments (key = value): format = zip, type = report, x-match = all
+
+![rabbitmq header exchange](/docs/high-concurrency/images/headers-exchange.png)
+
