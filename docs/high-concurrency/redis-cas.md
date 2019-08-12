@@ -6,6 +6,13 @@ redis 的并发竞争问题是什么？如何解决这个问题？了解 redis �
 
 而且 redis 自己就有天然解决这个问题的 CAS 类的乐观锁方案。
 
+```java
+watch
+multi
+//some command
+exec
+```
+
 ## 面试题剖析
 某个时刻，多个系统实例都去更新某个 key。可以基于 zookeeper 实现分布式锁。每个系统通过 zookeeper 获取分布式锁，确保同一时间，只能有一个系统实例在操作某个 key，别人都不允许读和写。
 
