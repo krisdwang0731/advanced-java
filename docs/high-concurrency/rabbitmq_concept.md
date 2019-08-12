@@ -103,3 +103,5 @@ The default exchange AMQP brokers must provide for the topic exchange is "amq.he
 
 ![rabbitmq header exchange](/docs/high-concurrency/images/headers-exchange.png)
 
+#### Dead Letter Exchange
+If no matching queue can be found for the message, the message is silently dropped. RabbitMQ provides an AMQP extension known as the "Dead Letter Exchange" - the dead letter exchange provides functionality to capture messages that are not deliverable.
