@@ -30,7 +30,7 @@ The default exchange AMQP brokers must provide for the direct exchange is "amq.d
 
 Imagine that queue A (create\_pdf\_queue) in the image below (Direct Exchange Figure) is bound to a direct exchange (pdf\_events) with the binding key pdf\_create. When a new message with routing key pdf\_create arrives at the direct exchange, the exchange routes it to the queue where the binding\_key = routing\_key, in the case to queue A (create\_pdf\_queue).
 
-![rabbitmq direct exchange](/docs/high-concurrency/images/direct-exchange .png)
+![rabbitmq direct exchange](/docs/high-concurrency/images/direct-exchange.png)
 
 **SCENARIO 1**   
 * Exchange: pdf\_events.  
