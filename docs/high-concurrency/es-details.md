@@ -43,3 +43,71 @@ ES集群的服务器分为以下四种角色：
 选举流程  
 
 ![es-master-election](/docs/high-concurrency/images/es-master-election.jpg)
+
+避免脑裂
+
+脑裂问题是采用master-slave模式的分布式集群普遍需要关注的问题，脑裂一旦出现，会导致集群的状态出现不一致，导致数据错误甚至丢失。
+
+ES避免脑裂的策略：过半原则，可以在ES的集群配置中添加一下配置，避免脑裂的发生。  
+
+```properties
+#一个节点多久ping一次，默认1s
+discovery.zen.fd.ping_interval: 1s
+##等待ping返回时间，默认30s
+discovery.zen.fd.ping_timeout: 10s
+##ping超时重试次数，默认3次
+discovery.zen.fd.ping_retries: 3
+##选举时需要的节点连接数，N为具有master资格的节点数量
+discovery.zen.minimum_master_nodes=N/2+1
+```
+注意问题
+
+* 配置文件中加入上述避免脑裂的配置，对于网络波动比较大的集群来说，增加ping的时间和ping的次数，一定程度上可以增加集群的稳定性
+* 动态的字段field可能导致元数据暴涨，新增字段mapping映射需要更新mater节点上维护的字段映射信息，master修改了映射信息之后再同步到集群中所有的节点，这个过程中数据的写入是阻塞的。所以建议关闭自动mapping，没有预先定义的字段mapping会写入失败
+* 通过定时任务在集群写入的低峰期，将索引以及mapping映射提前创建好
+
+### 负载均衡
+
+ES集群是分布式的，数据分布到集群的不同机器上，对于ES中的一个索引来说，ES通过分片的方式实现数据的分布式和负载均衡。创建索引的时候，需要指定分片的数量，分片会均匀的分布到集群的机器中。分片的数量是需要创建索引的时候就需要设置的，而且设置之后不能更改，虽然ES提供了相应的api来缩减和扩增分片，但是代价是很高的，需要重建整个索引。
+
+考虑到并发响应以及后续扩展节点的能力，分片的数量不能太少，假如你只有一个分片，随着索引数据量的增大，后续进行了节点的扩充，但是由于一个分片只能分布在一台机器上，所以集群扩容对于该索引来说没有意义了。
+
+但是分片数量也不能太多，每个分片都相当于一个独立的lucene引擎，太多的分片意味着集群中需要管理的元数据信息增多，master节点有可能成为瓶颈；同时集群中的小文件会增多，内存以及文件句柄的占用量会增大，查询速度也会变慢。
+
+### 数据副本
+
+ES通过副本分片的方式，保证集群数据的高可用，同时增加集群并发处理查询请求的能力，相应的，在数据写入阶段会增大集群的写入压力。
+
+数据写入的过程中，首先被路由到主分片，写入成功之后，将数据发送到副本分片，为了保证数据不丢失，最好保证至少一个副本分片写入成功以后才返回客户端成功。
+
+相关配置
+
+5.0之前通过consistency来设置
+
+consistency参数的值可以设为 ：
+
+* one ：只要主分片状态ok就允许执行写操作
+* all：必须要主分片和所有副本分片的状态没问题才允许执行写操作
+* quorum：默认值为quorum，即大多数的分片副本状态没问题就允许执行写操作，副本分片数量计算方式为int( (primary + number_of_replicas) / 2 ) + 1
+
+5.0之后通过wait_for_active_shards参数设置
+
+索引时增加参数：?wait_for_active_shards=3
+给索引增加配置：index.write.wait_for_active_shards=3
+
+### 数据写入
+
+#### 写入过程
+几个概念
+
+* 内存Buffer
+* translog
+* 文件系统缓冲区
+* refresh
+* segment
+* commit
+* flush
+
+![](/docs/high-concurrency/images/es-write-1.jpg)  
+
+![](/docs/high-concurrency/images/es-write-2.jpg)  
