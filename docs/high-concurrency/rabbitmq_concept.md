@@ -39,7 +39,34 @@ Imagine that queue A (create\_pdf\_queue) in the image below (Direct Exchange Fi
 **SCENARIO 2**   
 * Exchange: pdf_events.  
 * Queue B: pdf\_log\_queue.  
-* Binding key between exchange (pdf\_events) and Queue B (pdf\_log\_queue): pdf\_log.  
+* Binding key between exchange (pdf\_events) and Queue B (pdf\_log\_queue): pdf\_log.   
 
+#### Default Exchange
 
+The default exchange is a pre-declared direct exchange with no name, usually referred by the empty string "". When you use the default exchange, your message is delivered to the queue with a name equal to the routing key of the message. Every queue is automatically bound to the default exchange with a routing key which is the same as the queue name.  
 
+#### Topic Exchange
+
+Topic exchanges route messages to queues based on wildcard matches between the routing key and something called the routing pattern specified by the queue binding. Messages are routed to one or many queues based on a matching between a message routing key and this pattern.
+
+The routing key must be a list of words, delimited by a period (.), examples are agreements.us and agreements.eu.stockholm which in this case identifies agreements that are set up for a company with offices in lots of different locations. The routing patterns may contain an asterisk (\" * \") to match a word in a specific position of the routing key (e.g., a routing pattern of "agreements.*.*.b.*" only match routing keys where the first word is "agreements" and the fourth word is "b"). A pound symbol (\" # \") indicates match on zero or more words (e.g., a routing pattern of "agreements.eu.berlin.#" matches any routing keys beginning with "agreements.eu.berlin").
+
+The consumers indicate which topics they are interested in (like subscribing to a feed for an individual tag). The consumer creates a queue and sets up a binding with a given routing pattern to the exchange. All messages with a routing key that match the routing pattern are routed to the queue and stay there until the consumer consumes the message.
+
+The default exchange AMQP brokers must provide for the topic exchange is "amq.topic". 
+
+![rabbitmq topic exchange](/docs/high-concurrency/images/topic-exchange.png)
+
+**SCENARIO 1**   
+The image to the right show an example where consumer A is interested in all the agreements in Berlin.  
+* Exchange: agreements  
+* Queue A: berlin\_agreements  
+* Routing pattern between exchange (agreements) and Queue A (berlin_agreements): agreements.eu.berlin.#  
+* Example of message routing key that matches: agreements.eu.berlin and agreements.eu.berlin.headstore 
+  
+**SCENARIO 2**   
+* Consumer B is interested in all the agreements.   
+* Exchange: agreements  
+* Queue B: all\_agreements  
+* Routing pattern between exchange (agreements) and Queue B (all\_agreements): agreements.#  
+* Example of message routing key that matches: agreements.eu.berlin and agreements.us
