@@ -182,4 +182,4 @@ PUT /website/blog/2?version=5&version_type=external
 ```
 
 ####  原始文档存储(行式存储)
-![https://zhuanlan.zhihu.com/p/66768463](https://zhuanlan.zhihu.com/p/66768463)
+[https://zhuanlan.zhihu.com/p/66768463](https://zhuanlan.zhihu.com/p/66768463)
